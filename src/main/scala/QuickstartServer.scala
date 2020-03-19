@@ -1,16 +1,19 @@
 package com.social
 
 //#quick-start-server
+import Registries.FeedRegistryActor
+
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-
-import akka.actor.{ ActorRef, ActorSystem }
+import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
+import Registries.FeedRegistryActor._
+
 
 //#main-class
-object QuickstartServer extends App with UserRoutes {
+object QuickstartServer extends App with SocialRoutes {
 
   // set up ActorSystem and other dependencies here
   //#main-class
@@ -19,11 +22,11 @@ object QuickstartServer extends App with UserRoutes {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   //#server-bootstrapping
 
-  val playerRegistryActor: ActorRef = system.actorOf(PlayerRegistryActor.props, "userRegistryActor")
+  val feedRegistryActor: ActorRef = system.actorOf(FeedRegistryActor.props, "feedRegistryActor")
 
   //#main-class
   // from the UserRoutes trait
-  lazy val routes: Route = userRoutes
+  lazy val routes: Route = socialRoutes
   //#main-class
 
   //#http-server
