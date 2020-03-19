@@ -17,8 +17,6 @@ import akka.http.scaladsl.server.directives.PathDirectives.path
 import scala.concurrent.{Await, Future}
 import akka.pattern.ask
 import akka.util.Timeout
-import akka.http.caching.LfuCache
-import akka.http.caching.scaladsl.Cache
 import models.Feed
 import com.social.Registries.FeedRegistryActor._
 
@@ -36,19 +34,18 @@ trait SocialRoutes extends JsonSupport {
 
   // Required by the `ask` (?) method below
   implicit lazy val timeout = Timeout(5.seconds) // usually we'd obtain the timeout from the system's configuration
-  implicit lazy val cache: Cache[String, Int] = LfuCache[String, Int]
 
   //#all-routes
 
   lazy val socialRoutes: Route =
     pathPrefix("feed") {
       path("") {
-        put {
-          entity(as[Feed]) { player =>
-            val feedUpdate: Future[ActionPerformed] =
-              (feedRegistryActor ? UpdateFeed(player)).mapTo[ActionPerformed]
-            onSuccess(feedUpdate) { performed =>
-              log.info("feed actualizado [{}]: {}", player.user, performed.description)
+        post {
+          entity(as[Feed]) { feed =>
+            val feedCreate: Future[ActionPerformed] =
+              (feedRegistryActor ? CreateFeed(feed)).mapTo[ActionPerformed]
+            onSuccess(feedCreate) { performed =>
+              log.info("feed actualizado [{}]: {}", feed.user, performed.description)
               complete((StatusCodes.Created, performed))
             }
           }

@@ -1,6 +1,7 @@
 package com.social
 
 import Registries.FeedRegistryActor.ActionPerformed
+import Registries.FeedRegistryActor.FeedResponse
 import models.Feed
 
 //#json-support
@@ -14,5 +15,8 @@ trait JsonSupport extends SprayJsonSupport {
   implicit val feedJsonFormat = jsonFormat2(Feed)
 
   implicit val actionPerformedJsonFormat = jsonFormat1(ActionPerformed)
+  implicit val FeedResponseJsonFormat = jsonFormat1(FeedResponse)
+
 }
+
 //#json-support
