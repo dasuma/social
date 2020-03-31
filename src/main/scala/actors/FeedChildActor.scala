@@ -1,8 +1,9 @@
 package actors
 
-import Registries.FeedRouterActor.{ GetEvent, GetFeed}
+import Registries.FeedGetRouterActor.GetData
+import Registries.FeedRouterActor.{GetEvent, GetFeed}
 import akka.actor.OneForOneStrategy
-import models.{Feed}
+import models.Feed
 import akka.actor.SupervisorStrategy.Restart
 import akka.persistence.PersistentActor
 
@@ -33,9 +34,9 @@ class FeedChildActor(idFeed: String) extends PersistentActor {
 
   override def receiveCommand: Receive = {
     case feed: Feed => createFeed(feed)
-    case GetFeed(user: Long) =>
+    case GetData() =>
       val _sender = sender()
-      persist(GetEvent(user)) {
+      persist(GetEvent()) {
         evt => _sender ! (getFeed())
       }
   }

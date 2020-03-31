@@ -1,5 +1,5 @@
 import Registries.FeedResponses.{FeedResponse, GenericResponse}
-import Registries.FeedRouterActor.{CreateFeed, GetFeed}
+import Registries.FeedRouterActor.{CreateFeed, GetFeed, GetFeedByFriendUser, GetFeedStore}
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 
@@ -27,12 +27,25 @@ trait SocialRoutes extends JsonSupport {
 
   lazy val socialRoutes: Route =
 
-    pathPrefix("feed") {
+    pathPrefix("user") {
       path("") {
         get {
           parameters('user.as[Long]) { (user) =>
+            val feed: Future[FeedResponse] =
+              (masterRegistryActor ? GetFeed(user)).mapTo[FeedResponse]
+            onSuccess(feed) { performed =>
+              log.info("get_feed [{}]:", performed)
+              complete((StatusCodes.Accepted, performed))
+            }
+          }
+        }
+      }
+    } ~ pathPrefix("store") {
+      path("") {
+        get {
+          parameters('store.as[String]) { (store) =>
             val feedUpdate: Future[FeedResponse] =
-              ( masterRegistryActor ? GetFeed(user)).mapTo[FeedResponse]
+              (masterRegistryActor ? GetFeedStore(store)).mapTo[FeedResponse]
             onSuccess(feedUpdate) { performed =>
               log.info("get_feed [{}]:", performed)
               complete((StatusCodes.Accepted, performed))
@@ -40,7 +53,33 @@ trait SocialRoutes extends JsonSupport {
           }
         }
       }
-    } ~pathPrefix("feeds") {
+    } ~ pathPrefix("id") {
+      path("") {
+        get {
+          parameters('store.as[String]) { (store) =>
+            val feedUpdate: Future[FeedResponse] =
+              (masterRegistryActor ? GetFeedStore(store)).mapTo[FeedResponse]
+            onSuccess(feedUpdate) { performed =>
+              log.info("get_feed [{}]:", performed)
+              complete((StatusCodes.Accepted, performed))
+            }
+          }
+        }
+      }
+    } ~ pathPrefix("/store/friend") {
+      path("") {
+        get {
+          parameters('user.as[Long], 'id.as[String]) { (user, id) =>
+            val feedUpdate: Future[FeedResponse] =
+              (masterRegistryActor ? GetFeedByFriendUser(user, id)).mapTo[FeedResponse]
+            onSuccess(feedUpdate) { performed =>
+              log.info("get_feed [{}]:", performed)
+              complete((StatusCodes.Accepted, performed))
+            }
+          }
+        }
+      }
+    } ~ pathPrefix("feed") {
       post {
         entity(as[Feed]) { feed =>
           val feedCreate1: Future[GenericResponse] =
